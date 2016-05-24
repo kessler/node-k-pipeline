@@ -24,7 +24,7 @@
     "series"
   ],
   "engines": {
-    "node": ">=0.10.0",
+    "node": ">=4.0.0",
     "npm": ">=2.0.0"
   },
   "repository": "kessler/node-k-pipeline",
