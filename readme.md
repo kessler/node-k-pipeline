@@ -12,7 +12,7 @@
 const Pipeline = require('k-pipeline')
 let pipeline = Pipeline.create([
     (state, cb) => { cb() },
-    (state, cb) => { cb(); cb() }, // will run the final callback with an error because this callback was called twice
+    (state, cb) => { cb(); cb() }, // throws an error because this callback was called twice
     (state, cb) => { cb() }
 ])
 
