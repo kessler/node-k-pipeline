@@ -55,7 +55,10 @@ class Pipeline {
 
 		return this._run((err, state) => {
 			this._isRunning = false
-			userCallback(err, this._state)
+
+			setImmediate(() => { 
+				userCallback(err, this._state)
+			})
 		})
 	}
 
@@ -68,16 +71,19 @@ class Pipeline {
 
 		// invoke the function and provide a callback
 		fn(this._state, (err) => {
-			
+			debug('step callback')
+
 			if (callbackWasInvoked) {
+				debug('callbackWasInvoked')
 				let e = new Error('callback was already invoked, check err.cause for the offending function')
 				e.cause = fn
-				return internalCallback(e)
+				throw e
 			}
 
 			callbackWasInvoked = true
 
 			if (err) {
+				debug('error')
 				return internalCallback(err)
 			}
 
@@ -87,6 +93,7 @@ class Pipeline {
 			}
 
 			setImmediate(() => {
+				debug('next...')
 				this._run(internalCallback)
 			})
 		})
