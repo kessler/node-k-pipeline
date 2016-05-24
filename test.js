@@ -31,14 +31,28 @@ describe('Pipeline', () => {
 			done()
 		})
 
-		function fn1(state, cb) {
+		function fn1(state, next) {
 			invoked1 = true
-			cb()
+			next()
 		}
 
-		function fn2(state, cb) {
+		function fn2(state, next) {
 			invoked2 = true
-			cb()
+			next()
+		}
+	})
+
+	it('stops execution in the middle if stop() is called instead of next()', (done) => {
+		let pipeline = new Pipeline([fn1, fn2])
+		
+		pipeline.run(done)
+
+		function fn1(state, next, stop) {
+			stop()
+		}
+
+		function fn2(state, next) {
+			done(new Error('fn2 should not have been executed'))
 		}
 	})
 
@@ -51,32 +65,32 @@ describe('Pipeline', () => {
 			done()
 		})
 
-		function fn1(state, cb) {
+		function fn1(state, next) {
 			state.fn1 = true
-			cb()
+			next()
 		}
 
-		function fn2(state, cb) {
+		function fn2(state, next) {
 			expect(state).to.have.property('fn1', true)
 			state.fn2 = true
-			cb()
+			next()
 		}
 	})
 
-	it('throws an error if step callback is invoked twice', (done) => {
+	it('throws an error if next callback is invoked twice', (done) => {
 		let pipeline = new Pipeline([fn1])
 
 		pipeline.run(done)
 
-		function fn1(state, cb) {
-			cb()
+		function fn1(state, next) {
+			next()
 			expect(() => {
-				cb()
+				next()
 			}).to.throw('callback was already invoked, check err.cause for the offending function')
 		}
 	})
 
-	it('stops the execution if a function calls the step callback with an error', (done) => {
+	it('stops the execution if a function calls the next callback with an error', (done) => {
 		let pipeline = new Pipeline([fn1, fn2])
 		let e = new Error()
 		pipeline.run((err, state) => {
@@ -85,11 +99,11 @@ describe('Pipeline', () => {
 			done()
 		})
 
-		function fn1(state, cb) {
-			cb(e)
+		function fn1(state, next) {
+			next(e)
 		}
 
-		function fn2(state, cb) {
+		function fn2(state, next) {
 			done(new Error('fn2 should not have been executed'))
 		}
 	})

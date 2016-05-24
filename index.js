@@ -70,8 +70,8 @@ class Pipeline {
 		let callbackWasInvoked = false
 
 		// invoke the function and provide a callback
-		fn(this._state, (err) => {
-			debug('step callback')
+		let nextCallback = (err) => {
+			debug('next callback')
 
 			if (callbackWasInvoked) {
 				debug('callbackWasInvoked')
@@ -96,7 +96,15 @@ class Pipeline {
 				debug('next...')
 				this._run(internalCallback)
 			})
-		})
+		}
+
+		// 
+		let stop = () => {
+			this._currentIndex = this._pipeline.length
+			nextCallback()
+		}
+
+		fn(this._state, nextCallback, stop)
 	}
 }
 

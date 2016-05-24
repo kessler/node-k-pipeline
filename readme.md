@@ -11,9 +11,10 @@
 ```js
 const Pipeline = require('k-pipeline')
 let pipeline = Pipeline.create([
-    (state, cb) => { cb() },
-    (state, cb) => { cb(); cb() }, // throws an error because this callback was called twice
-    (state, cb) => { cb() }
+    (state, next, stop) => { next() },
+    (state, next, stop) => { next(); next() }, // throws an error because this callback was called twice
+    (state, next, stop) => { stop() }, // stop the execution in the middle -> jump directly to final callback
+    (state, next, stop) => { next() }
 ])
 
 pipeline.run((err, state) => {
