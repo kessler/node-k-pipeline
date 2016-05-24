@@ -44,6 +44,10 @@ class Pipeline {
 			state = undefined
 		}
 		
+		if (typeof userCallback !== 'function') {
+			throw new TypeError('missing a callback parameter')
+		}
+
 		if (this._isRunning) {
 			throw new Error('already running')
 		}
