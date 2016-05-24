@@ -1,6 +1,6 @@
 {
   "name": "k-pipeline",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Executes a bunch of callback styled functions serially",
   "license": "MIT",
   "author": {
