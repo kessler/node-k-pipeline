@@ -78,7 +78,7 @@ pipeline.run((err, state) => {
 })
 ```
 
-### example - stuff you can't do
+### stuff you can't do
 
 ##### call a callback twice
 
