@@ -25,7 +25,7 @@ class Pipeline {
 			throw new TypeError('missing or invalid pipeline parameter')
 		}
 
-		this._state = {}
+		this._state = undefined
 		this._currentIndex = 0
 		this._isRunning = false
 
@@ -36,21 +36,29 @@ class Pipeline {
 		return new Pipeline(pipeline)
 	}
 
-	run(userCallback) {
+	run(state, userCallback) {
 		debug('run()')
+
+		if (typeof state === 'function') {
+			userCallback = state
+			state = undefined
+		}
 		
 		if (this._isRunning) {
 			throw new Error('already running')
 		}
 
-		this._state = {}
+		// reset state or use user provided one
+		this._state = state || {}
 		this._currentIndex = 0
 		this._isRunning = true
 
 		// shortcut		
 		if (this._pipeline.length === 0) {
 			this._isRunning = false
-			return setImmediate(userCallback)
+			return setImmediate(() => {
+				userCallback(null, this._state)
+			})
 		}
 
 		return this._run((err, state) => {

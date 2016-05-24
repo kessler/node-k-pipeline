@@ -108,6 +108,22 @@ describe('Pipeline', () => {
 		}
 	})
 
+	it('can override state in run() method', (done) => {
+		let myState = {}
+		let pipeline = new Pipeline([ (state, next) => { next() }])
+
+		pipeline.run(myState, (err, state) => {
+			if (err) return done(err)
+
+			expect(state).to.equal(myState)
+
+			pipeline.run((err, state) => {
+				expect(state).to.not.equal(myState)
+				done()
+			})
+		})
+	})
+
 	it.skip('bench', function(done) {
 		this.timeout(10000)
 
