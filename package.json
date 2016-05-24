@@ -1,0 +1,32 @@
+{
+  "name": "k-pipeline",
+  "version": "0.0.1",
+  "description": "Executes a bunch of callback styled functions serially",
+  "license": "MIT",
+  "author": {
+    "name": "yaniv kessler",
+    "email": "yanivk@gmail.com"
+  },
+  "scripts": {
+    "test": "mocha test/**/*.js"
+  },
+  "dependencies": {
+    "debug": "^2.2.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "~2.5.2"
+  },
+  "keywords": [
+    "async",
+    "pipeline",
+    "series"
+  ],
+  "engines": {
+    "node": ">=0.10.0",
+    "npm": ">=2.0.0"
+  },
+  "repository": "kessler/node-k-pipeline",
+  "bugs": "https://github.com/kessler/node-k-pipeline/issues",
+  "homepage": "https://github.com/kessler/node-k-pipeline"
+}
