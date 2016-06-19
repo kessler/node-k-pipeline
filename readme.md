@@ -12,20 +12,28 @@ This is an adhoc/opinionated version of the popular async.\<waterfall|serial\>
 
 ```js
 const Pipeline = require('k-pipeline')
+const assert = require('assert')
 
 let pipeline = Pipeline.create([
     
     // state is just a new javascript object
-    (state, next, stop) => { next() },
+    (state, next, stop) => { 
+        state.foo = 'bar'
+        next() 
+    },
 
     // stop the execution in the middle -> jump directly to final callback
-    (state, next, stop) => { stop() }, 
+    (state, next, stop) => { 
+        assert(state.foo === 'bar')
+        stop() 
+    }, 
     
     // this will not be executed
     (state, next, stop) => { next() } 
 ])
 
-pipeline.run((err, state) => {
+pipeline.run((err, state, isStop) => {
+    assert(isStop)
 })
 ```
 

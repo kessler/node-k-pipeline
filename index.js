@@ -28,6 +28,7 @@ class Pipeline {
 		this._state = undefined
 		this._currentIndex = 0
 		this._isRunning = false
+		this._isUserStop = false
 
 		debug('creating a pipeline with %d functions', this._pipeline.length)
 	}
@@ -56,12 +57,13 @@ class Pipeline {
 		this._state = state || {}
 		this._currentIndex = 0
 		this._isRunning = true
+		this._isUserStop = false
 
 		// shortcut		
 		if (this._pipeline.length === 0) {
 			this._isRunning = false
 			return setImmediate(() => {
-				userCallback(null, this._state)
+				userCallback(null, this._state, this._isUserStop)
 			})
 		}
 
@@ -69,7 +71,7 @@ class Pipeline {
 			this._isRunning = false
 
 			setImmediate(() => { 
-				userCallback(err, this._state)
+				userCallback(err, this._state, this._isUserStop)
 			})
 		})
 	}
@@ -113,6 +115,7 @@ class Pipeline {
 		// 
 		let stop = () => {
 			this._currentIndex = this._pipeline.length
+			this._isUserStop = true
 			nextCallback()
 		}
 

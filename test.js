@@ -45,7 +45,11 @@ describe('Pipeline', () => {
 	it('stops execution in the middle if stop() is called instead of next()', (done) => {
 		let pipeline = new Pipeline([fn1, fn2])
 		
-		pipeline.run(done)
+		pipeline.run((err, state, isStop) => {
+			if (err) return done(err)
+			expect(isStop).to.be.true
+			done()
+		})
 
 		function fn1(state, next, stop) {
 			stop()
@@ -119,6 +123,26 @@ describe('Pipeline', () => {
 
 			pipeline.run((err, state) => {
 				expect(state).to.not.equal(myState)
+				done()
+			})
+		})
+	})
+
+	it('is reusable', () => {
+		let count = 0
+
+		let pipeline = new Pipeline([ 
+			(state, next) => { state.foo = 0; next() },
+			(state, next, stop) => { state.foo++; stop() }
+		])
+
+		pipeline.run((err, state) => {
+			if (err) return done(err)
+
+			expect(state.foo).to.equal(1)
+
+			pipeline.run((err, state) => {
+				expect(state.foo).to.equal(1)
 				done()
 			})
 		})
