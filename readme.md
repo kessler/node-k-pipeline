@@ -2,6 +2,8 @@
 
 **Executes a bunch of callback styled functions serially**
 
+This is an adhoc/opinionated version of the popular async.<waterfall/serial>
+
 [![npm status](http://img.shields.io/npm/v/k-pipeline.svg?style=flat-square)](https://www.npmjs.org/package/k-pipeline) [![Travis build status](https://img.shields.io/travis/kessler/node-k-pipeline.svg?style=flat-square&label=travis)](http://travis-ci.org/kessler/node-k-pipeline) [![Dependency status](https://img.shields.io/david/kessler/node-k-pipeline.svg?style=flat-square)](https://david-dm.org/kessler/node-k-pipeline)
 
 ## example - flow control
