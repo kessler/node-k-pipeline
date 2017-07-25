@@ -6,9 +6,15 @@ This is an adhoc/opinionated version of the popular async.\<waterfall|serial\>
 
 [![npm status](http://img.shields.io/npm/v/k-pipeline.svg?style=flat-square)](https://www.npmjs.org/package/k-pipeline) [![Travis build status](https://img.shields.io/travis/kessler/node-k-pipeline.svg?style=flat-square&label=travis)](http://travis-ci.org/kessler/node-k-pipeline) [![Dependency status](https://img.shields.io/david/kessler/node-k-pipeline.svg?style=flat-square)](https://david-dm.org/kessler/node-k-pipeline)
 
-## example - flow control
+## install
 
-`npm i k-pipeline`
+With [npm](https://npmjs.org) do:
+
+```
+npm install k-pipeline
+```
+
+### example - flow control
 
 ```js
 const Pipeline = require('k-pipeline')
@@ -88,6 +94,51 @@ pipeline.run((err, state) => {
 })
 ```
 
+### example - stopping the pipeline
+
+```js
+const Pipeline = require('k-pipeline')
+const assert = require('assert')
+
+let aState = { foo: 'bar' }
+let pipeline = Pipeline.create([
+    (state, next, stop) => { next() },
+    (state, next, stop) => { stop() },
+    (state, next, stop) => { next() } // will never get executed
+])
+
+// state will reset to a new javascript object each run()
+pipeline.run((err, state, isStop) => {
+    assert(isStop)
+})
+```
+
+### example - loops inside the pipeline
+
+```js
+const Pipeline = require('k-pipeline')
+const assert = require('assert')
+
+let aState = { foo: 'bar' }
+let pipeline = Pipeline.create([
+    (state, next, stop) => { 
+        state.count = 0 
+        next() 
+    },
+    (state, next, stop, loop) => { 
+        if (++state.count === 10) return loop()
+        next()
+    },
+    (state, next, stop) => { next() }
+])
+
+// state will reset to a new javascript object each run()
+pipeline.run((err, state, isStop) => {
+    assert(state.count === 10)
+})
+```
+
+
 ### stuff you can't do
 
 ##### call a callback twice
@@ -116,14 +167,6 @@ let pipeline = Pipeline.create([
 
 pipeline.run((err, state) => {})
 pipeline.run((err, state) => {}) // throws an error
-```
-
-## install
-
-With [npm](https://npmjs.org) do:
-
-```
-npm install k-pipeline
 ```
 
 ## license

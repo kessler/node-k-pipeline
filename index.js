@@ -114,12 +114,23 @@ class Pipeline {
 
 		// 
 		let stop = () => {
+			debug('stopping')
 			this._currentIndex = this._pipeline.length
 			this._isUserStop = true
 			nextCallback()
 		}
 
-		fn(this._state, nextCallback, stop)
+		let loop = (err) => {
+			debug('looping')
+			if (err) {
+				debug('error')
+				return internalCallback(err)
+			}
+
+			fn(this._state, nextCallback, stop, loop)
+		}
+
+		fn(this._state, nextCallback, stop, loop)
 	}
 }
 

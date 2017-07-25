@@ -60,6 +60,40 @@ describe('Pipeline', () => {
 		}
 	})
 
+	it('rerun a function from inside itself using "loop" - allowing for serially async loops inside the pipeline', (done) => {
+		let invoked1 = 0
+		let invoked2 = 0
+		let invoked3 = 0
+
+		let pipeline = new Pipeline([fn1, fn2, fn3])
+
+		pipeline.run((err, state) => {
+			if (err) return done(err)
+
+			expect(invoked1).to.equal(1)
+			expect(invoked2).to.equal(3)
+			expect(invoked3).to.equal(1)
+
+			done()
+		})
+
+		function fn1(state, next) {
+			invoked1++
+			next()
+		}
+
+		function fn2(state, next, stop, loop) {
+			if (++invoked2 < 3) return loop()
+
+			next()
+		}
+
+		function fn3(state, next) {
+			invoked3++
+			next()
+		}
+	})
+
 	it('shares a state object between invoked functions and passes it to the final callback', (done) => {
 		let pipeline = new Pipeline([fn1, fn2])
 
