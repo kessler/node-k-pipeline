@@ -44,7 +44,7 @@ describe('Pipeline', () => {
 
 	it('stops execution in the middle if stop() is called instead of next()', (done) => {
 		let pipeline = new Pipeline([fn1, fn2])
-		
+
 		pipeline.run((err, state, isStop) => {
 			if (err) return done(err)
 			expect(isStop).to.be.true
@@ -148,7 +148,7 @@ describe('Pipeline', () => {
 
 	it('can override state in run() method', (done) => {
 		let myState = {}
-		let pipeline = new Pipeline([ (state, next) => { next() }])
+		let pipeline = new Pipeline([(state, next) => { next() }])
 
 		pipeline.run(myState, (err, state) => {
 			if (err) return done(err)
@@ -165,9 +165,11 @@ describe('Pipeline', () => {
 	it('is reusable', () => {
 		let count = 0
 
-		let pipeline = new Pipeline([ 
-			(state, next) => { state.foo = 0; next() },
-			(state, next, stop) => { state.foo++; stop() }
+		let pipeline = new Pipeline([
+			(state, next) => { state.foo = 0;
+				next() },
+			(state, next, stop) => { state.foo++;
+				stop() }
 		])
 
 		pipeline.run((err, state) => {
@@ -182,20 +184,59 @@ describe('Pipeline', () => {
 		})
 	})
 
+	it('all operations are available as method of the first parameter', (done) => {
+		let pipeline = new Pipeline([
+			(state, ops) => {
+				expect(ops.next).to.be.a('function')
+				expect(ops.stop).to.be.a('function')
+				expect(ops.loop).to.be.a('function')
+				expect(ops.save).to.be.a('function')
+				ops.next()
+			},
+			(state, next) => { next() }
+		])
+
+		pipeline.run(done)
+	})
+
+	it('saves the results of an operation to the state object', (done) => {
+		let fn = (callback) => {
+			callback(null, 1, 2, 3)
+		}
+
+		let pipeline = new Pipeline([
+			(state, ops) => {
+				fn(ops.save('res'))
+			},
+			(state, next) => {
+				state.foo = 'bar'
+				next()
+			}
+		])
+
+		pipeline.run((err, state) => {
+			expect(state.res).to.deep.equal([1, 2, 3])
+			expect(state.foo).to.equal('bar')
+			done()
+		})
+	})
+
 	it.skip('bench', function(done) {
 		this.timeout(10000)
 
 		let iterations = 100
 		const functionCount = 10000
 
-		let functions = [(state, cb) => { state.x = 0; cb() }]
+		let functions = [(state, cb) => { state.x = 0;
+			cb() }]
 		let pipeline = Pipeline.create(functions)
 
 		for (var i = functionCount; i >= 0; i--) {
-			functions.push((state, cb) => { state.x = state.x + 1; cb() })
+			functions.push((state, cb) => { state.x = state.x + 1;
+				cb() })
 		}
 
-		
+
 		let avg = cma()
 
 		// console.log(avg.value) // 1
@@ -208,7 +249,7 @@ describe('Pipeline', () => {
 
 			pipeline.run((err, state) => {
 				avg.push(Date.now() - start)
-				
+
 				if (--iterations === 0) {
 					finish()
 				} else {

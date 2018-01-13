@@ -44,7 +44,7 @@ class Pipeline {
 			userCallback = state
 			state = undefined
 		}
-		
+
 		if (typeof userCallback !== 'function') {
 			throw new TypeError('missing a callback parameter')
 		}
@@ -70,7 +70,7 @@ class Pipeline {
 		return this._run((err, state) => {
 			this._isRunning = false
 
-			setImmediate(() => { 
+			setImmediate(() => {
 				userCallback(err, this._state, this._isUserStop)
 			})
 		})
@@ -78,8 +78,8 @@ class Pipeline {
 
 	_run(internalCallback) {
 		debug('_run() function %d', this._currentIndex)
-		
-		// this will work for sure because run make sure we never _run with an empty array
+
+		// run will not call _run with an empty array
 		let fn = this._pipeline[this._currentIndex++]
 		let callbackWasInvoked = false
 
@@ -112,7 +112,6 @@ class Pipeline {
 			})
 		}
 
-		// 
 		let stop = () => {
 			debug('stopping')
 			this._currentIndex = this._pipeline.length
@@ -130,7 +129,27 @@ class Pipeline {
 			fn(this._state, nextCallback, stop, loop)
 		}
 
-		fn(this._state, nextCallback, stop, loop)
+		let save = (name) => {
+
+			return (err, ...params) => {
+				debug('saving')
+
+				if (err) {
+					debug('error')
+					return internalCallback(err)
+				}
+
+				this._state[name] = params
+				nextCallback()
+			}
+		}
+
+		nextCallback.next = nextCallback
+		nextCallback.stop = stop
+		nextCallback.loop = loop
+		nextCallback.save = save
+
+		fn(this._state, nextCallback, stop, loop, save)
 	}
 }
 

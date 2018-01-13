@@ -23,24 +23,45 @@ const assert = require('assert')
 let pipeline = Pipeline.create([
     
     // state is just a new javascript object
-    (state, next, stop) => { 
+    (state, ops) => { 
         state.foo = 'bar'
-        next() 
+        ops.next() 
     },
 
     // stop the execution in the middle -> jump directly to final callback
-    (state, next, stop) => { 
+    (state, ops) => { 
         assert(state.foo === 'bar')
-        stop() 
+        ops.stop() 
     }, 
     
     // this will not be executed
-    (state, next, stop) => { next() } 
+    (state, ops) => { ops.next() }
 ])
 
 pipeline.run((err, state, isStop) => {
     assert(isStop)
 })
+```
+
+### example - pipeline callback api is available as both functions or methods of the first parameter
+
+```js
+const Pipeline = require('k-pipeline')
+
+let pipeline = Pipeline.create([
+    (state, ops) => { 
+        ops.next() // === ops()
+        // ops.stop()
+        // ops.loop()
+        // ops.save('foo')
+    },
+    (state, next, stop, loop, save) => { 
+        next()
+    }
+])
+
+// override constructor state
+pipeline.run((err, state) => {})
 ```
 
 ### example - custom state
@@ -50,7 +71,7 @@ const Pipeline = require('k-pipeline')
 
 let aState = { foo: 'bar' }
 let pipeline = Pipeline.create([
-    (state, next, stop) => { 
+    (state, next) => { 
         console.log(state === aState) // true
         next()
     }
@@ -69,7 +90,7 @@ const Pipeline = require('k-pipeline')
 
 let aState = { foo: 'bar' }
 let pipeline = Pipeline.create([
-    (state, next, stop) => { next() }
+    (state, next) => { next() }
 ])
 
 // state will reset to a new javascript object each run()
@@ -80,13 +101,14 @@ pipeline.run((err, state) => {
 ```
 
 ### example - error in the pipe
+
 ```js
 const Pipeline = require('k-pipeline')
 
 let error = new Error()
 let pipeline = Pipeline.create([
-    (state, next, stop) => { next(error) },
-    (state, next, stop) => { next() } // will not be executed
+    (state, next) => { next(error) },
+    (state, next) => { next() } // will not be executed
 ])
 
 pipeline.run((err, state) => {
@@ -102,9 +124,9 @@ const assert = require('assert')
 
 let aState = { foo: 'bar' }
 let pipeline = Pipeline.create([
-    (state, next, stop) => { next() },
-    (state, next, stop) => { stop() },
-    (state, next, stop) => { next() } // will never get executed
+    (state, ops) => { ops.next() },
+    (state, ops) => { ops.stop() },
+    (state, ops) => { ops.next() } // will never get executed
 ])
 
 // state will reset to a new javascript object each run()
@@ -121,15 +143,15 @@ const assert = require('assert')
 
 let aState = { foo: 'bar' }
 let pipeline = Pipeline.create([
-    (state, next, stop) => { 
+    (state, ops) => { 
         state.count = 0 
-        next() 
+        ops.next() 
     },
-    (state, next, stop, loop) => { 
-        if (++state.count === 10) return loop()
-        next()
+    (state, ops) => { 
+        if (++state.count === 10) return ops.loop()
+        ops.next()
     },
-    (state, next, stop) => { next() }
+    (state, next) => { next() }
 ])
 
 // state will reset to a new javascript object each run()
@@ -138,6 +160,27 @@ pipeline.run((err, state, isStop) => {
 })
 ```
 
+### example - save results of an operation to the pipeline state
+
+```js
+const Pipeline = require('k-pipeline')
+const assert = require('assert')
+
+function foo(callback) {
+    callback(null, 1, 2, 3)
+}
+
+let pipeline = Pipeline.create([
+    (state, ops) => { 
+        foo(ops.save('foo'))
+    }
+])
+
+// state will reset to a new javascript object each run()
+pipeline.run((err, state, isStop) => {
+    assert.deepStrictEqual([1, 2, 3], state.foo)
+})
+```
 
 ### stuff you can't do
 
@@ -168,6 +211,11 @@ let pipeline = Pipeline.create([
 pipeline.run((err, state) => {})
 pipeline.run((err, state) => {}) // throws an error
 ```
+
+## Changelog
+### 3.3.0
+- add save() to callback api
+- expose all callback functions as method of the first parameter: `(state, next, stop, loop, save) => {}` can now be written as `(state, ops) => { ops.save(); ops.stop() ...}`
 
 ## license
 
